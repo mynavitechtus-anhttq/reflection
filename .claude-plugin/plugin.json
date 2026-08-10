@@ -1,0 +1,9 @@
+{
+  "name": "reflection",
+  "version": "0.1.0",
+  "description": "Ghi nhận công việc theo ngày, tổng hợp thành tuần và tháng. Gom dữ liệu từ phiên Claude Code, git và GitHub, rồi hỏi bù phần không để lại dấu vết máy.",
+  "author": {
+    "name": "anhttq"
+  },
+  "keywords": ["reflection", "daily", "weekly", "report", "retrospective"]
+}
