@@ -63,6 +63,12 @@ Có file thì dùng luôn — nhanh hơn, và quan trọng hơn: nó là dấu v
 đúng thời điểm cuối ngày hôm đó. Viết bù sau vài ngày mà gom lại thì log
 phiên có thể đã bị dồn hoặc xoá bớt.
 
+**Nhưng khi viết bù một ngày đã qua, chạy thêm `collect.sh` cho ngày đó và
+so với snapshot.** Snapshot chụp lúc cuối giờ chiều nên thiếu ba thứ:
+commit làm sau giờ chụp, commit nằm trong worktree hay nhánh phụ chỉ về
+repo chính khi merge, và giờ log lên ticket sau đó. Hai nguồn lệch nhau
+thì lấy hợp của cả hai — thiếu việc là lỗi nặng hơn thừa một dòng.
+
 Không có thì gom trực tiếp:
 
 ```bash
