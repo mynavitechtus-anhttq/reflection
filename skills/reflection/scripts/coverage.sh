@@ -123,8 +123,11 @@ while [[ "$cur" -le "$end" ]]; do
   fi
 
   # Mã ticket trong commit/PR/Backlog mà bản ghi không nhắc tới.
+  # Backlog chỉ tính ticket có log giờ: ticket mới tạo để mai làm thì không
+  # thuộc về bản ghi hôm nay, báo lên chỉ thành nhiễu.
   ids=$(echo "$raw" \
-    | jq -r '[(.git[]?.subject // ""), (.github[]?.title // ""), (.backlog[]?.key // "")] | .[]' \
+    | jq -r '[(.git[]?.subject // ""), (.github[]?.title // ""),
+              (.backlog[]? | select(.hours > 0) | .key)] | .[]' \
     | grep -oE '[A-Z][A-Z0-9_]{2,}-[0-9]+' | sort -u)
   for id in $ids; do
     grep -q "$id" "$f" 2>/dev/null || untracked+=("$d  $id")

@@ -4,6 +4,30 @@ Bỏ danh xưng "tôi". Chủ ngữ là công việc. Đây là bản tổng k�
 nhật ký — người đọc muốn biết tháng qua tạo ra được gì, không phải tuần
 nào làm gì.
 
+## Cách trình bày
+
+Khuôn của ba mục dưới đây giống nhau:
+
+- Đánh số `1/ 2/ 3/`, mỗi ý là **một đoạn văn liền mạch**. Không gạch đầu
+  dòng, không bảng, không danh sách lồng.
+- Mỗi đoạn **mở bằng động từ hành động**: Triển khai…, Xây…, Rút ngắn…,
+  Đóng…, Chuyển giao… Đừng mở bằng danh từ hay bằng bối cảnh.
+- Mỗi đoạn **kết bằng ích lợi cụ thể**: nhờ đó ai đỡ việc gì, tránh được
+  chuyện gì. Đoạn chỉ tả việc mà không nói ích lợi là chưa xong.
+- Ba đến bốn ý mỗi mục là vừa. Mục Hợp tác có thể năm hoặc sáu.
+
+**Hạ bớt thuật ngữ.** Người đọc báo cáo tháng không phải lúc nào cũng là
+dev. Viết "đăng nhập hai lớp" thay cho MFA, "tầng cân bằng tải" thay cho
+ALB, "bộ nhớ đệm trình duyệt" thay cho bfcache. Bản ngày và bản tuần thì
+giữ nguyên thuật ngữ.
+
+**Không nêu tên dự án và mã ticket.** Bản ngày và bản tuần cần chúng để
+tra lại; bản tháng thì không, và nêu ra là đang kể việc thay vì tổng kết.
+Viết "một dự án khác", "ba dự án khác trong tháng". Gộp mấy ca cùng loại
+thành một nhận định chung, ví dụ "phần lớn góp ý rơi vào chỗ report kết
+luận sớm khi chưa soát hết những gì đang chạy trên máy chủ" thay vì kể
+từng ca một.
+
 ## Chất lượng
 
 {{Kết quả đo được và ai xác nhận. Có số thì nói phần trăm kèm nguồn (khách

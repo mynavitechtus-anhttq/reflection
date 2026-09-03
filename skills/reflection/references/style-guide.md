@@ -60,7 +60,28 @@ Cùng nội dung, tách câu:
 Ngắn không có nghĩa là cụt. Bản ✓ dài hơn về số chữ nhưng đọc một lượt là
 hiểu, còn bản ✗ phải đọc lại.
 
-## 3b. Bài học kỹ thuật không phải bản tóm tài liệu điều tra
+## 3a. Đừng tự đặt ẩn dụ cho thứ đã có tên cụ thể
+
+Bản nháp hay gọn hoá bằng hình ảnh tự nghĩ ra: "đường hai chặng", "đi trọn
+một vòng", "tài liệu và code trôi mỗi thứ một hướng". Nghe súc tích, nhưng
+người đọc phải giải mã, và giải sai thì hiểu lệch.
+
+> ✗ Chạy đường hai chặng trước, rồi mới thử đường thẳng.
+> ✓ Kế hoạch ban đầu nâng qua hai bước: 8.0.6 lên 8.4, rồi 8.4 lên 8.8.
+> Sau đó thử nâng thẳng lên 8.8.5 thì chạy được ngay.
+
+Thứ gì có version, có tên hàm, có tên bước thì gọi đúng tên nó.
+
+## 3b. Kể theo mạch việc, không kể theo lịch
+
+"Đầu tuần… giữa tuần… cuối tuần…" là cách sắp xếp của cuốn lịch, không
+phải của công việc. Người đọc cần biết việc nào dẫn tới việc nào.
+
+> ✗ Đầu tuần chạy đường hai chặng. Giữa tuần kiểm chứng. Cuối tuần thử PoC.
+> ✓ Làm xong cả hai bước rồi kiểm chứng. Sau đó thử nâng thẳng, hoá ra
+> chạy được, nên bỏ bước trung gian.
+
+## 3c. Bài học kỹ thuật không phải bản tóm tài liệu điều tra
 
 Tên tham số, tên hàm, tên file cấu hình thuộc về report. Đưa chúng vào bản
 ghi thì đoạn văn trông có vẻ chắc chắn, nhưng người đọc — kể cả chính bạn
@@ -124,6 +145,14 @@ và bản nháp đầu tay gần như luôn rơi vào một trong ba:
 
 Nếu ba bài học trong một bản ghi cùng một khuôn thì viết lại, kể cả khi
 từng câu nghe đều ổn.
+
+Thêm hai thứ hay lọt vào cuối đoạn:
+
+- **Câu tổng kết sáo.** "Cách chia này giữ được tốc độ mà không giao phán
+  đoán cho máy." Đoạn trên đã nói đủ rồi, câu này chỉ nhắc lại bằng giọng
+  trịnh trọng. Xoá đi là đoạn văn chặt hơn.
+- **Nhân hoá công cụ.** "AI gánh phần giấy tờ", "script tự lo phần còn
+  lại". Viết "Dùng AI cho…" là xong.
 
 ## 9. Không suy diễn ra ngoài dấu vết
 
