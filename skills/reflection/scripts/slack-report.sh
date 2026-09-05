@@ -50,6 +50,15 @@ while :; do
 done
 NEXT=$(fmt_epoch "$NEXT_EPOCH" "+%Y-%m-%d")
 
+# ── Ngày làm việc, cùng mốc 04:00 với collect.sh và backlog.sh ────────────
+# Log giờ lúc 1h sáng là phần việc của ngày hôm trước. Lọc theo ngày lịch
+# thì những lần log đó rơi nhầm sang hôm sau, và báo cáo thiếu ticket.
+DAY_START_HOUR="${REFLECT_DAY_START_HOUR:-4}"
+S=$(epoch_of "$(printf '%s %02d:00:00' "$DAY" "$DAY_START_HOUR")")
+E=$(( S + 86400 ))
+S_ISO=$(fmt_epoch "$S" "+%Y-%m-%dT%H:%M:%S")
+E_ISO=$(fmt_epoch "$E" "+%Y-%m-%dT%H:%M:%S")
+
 # ── Today: gom mọi lần sửa actualHours trong ngày ─────────────────────────
 # Một ticket có thể được sửa nhiều lần; cộng hết phần chênh lệch lại.
 # status 3 = đã xử lý, 4 = đã đóng → coi là xong.
@@ -69,15 +78,15 @@ done
 
 # Mọi ticket có hoạt động hôm nay, kể cả chưa log giờ — dùng để đánh dấu
 # "continue" ở phần Tomorrow: đã đụng vào rồi thì mai là làm tiếp.
-TOUCHED=$(echo "$ALL" | jq -c --arg d "$DAY" '
+TOUCHED=$(echo "$ALL" | jq -c --arg s "$S_ISO" --arg e "$E_ISO" '
   map(select((.created | strptime("%Y-%m-%dT%H:%M:%SZ") | mktime
-              | strflocaltime("%Y-%m-%d")) == $d))
+              | strflocaltime("%Y-%m-%dT%H:%M:%S")) as $t | $t >= $s and $t < $e))
   | map((.project.projectKey // "?") + "-" + ((.content.key_id // 0) | tostring))
   | unique')
 
-TODAY=$(echo "$ALL" | jq -c --arg d "$DAY" '
+TODAY=$(echo "$ALL" | jq -c --arg s "$S_ISO" --arg e "$E_ISO" '
   map(select((.created | strptime("%Y-%m-%dT%H:%M:%SZ") | mktime
-              | strflocaltime("%Y-%m-%d")) == $d))
+              | strflocaltime("%Y-%m-%dT%H:%M:%S")) as $t | $t >= $s and $t < $e))
   | map({
       key: ((.project.projectKey // "?") + "-" + ((.content.key_id // 0) | tostring)),
       summary: (.content.summary // ""),
