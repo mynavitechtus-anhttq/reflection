@@ -84,25 +84,45 @@ TOUCHED=$(echo "$ALL" | jq -c --arg s "$S_ISO" --arg e "$E_ISO" '
   | map((.project.projectKey // "?") + "-" + ((.content.key_id // 0) | tostring))
   | unique')
 
-TODAY=$(echo "$ALL" | jq -c --arg s "$S_ISO" --arg e "$E_ISO" '
+# Giờ log riêng trong ngày, gom theo ticket. Ticket kéo dài cả tuần mà mỗi
+# ngày log một ít thì mỗi ngày chỉ tính phần của ngày đó.
+DELTA=$(echo "$ALL" | jq -c --arg s "$S_ISO" --arg e "$E_ISO" '
   map(select((.created | strptime("%Y-%m-%dT%H:%M:%SZ") | mktime
               | strflocaltime("%Y-%m-%dT%H:%M:%S")) as $t | $t >= $s and $t < $e))
   | map({
       key: ((.project.projectKey // "?") + "-" + ((.content.key_id // 0) | tostring)),
-      summary: (.content.summary // ""),
       hours: ([ .content.changes[]? | select(.field == "actualHours")
-                | ((.new_value | tonumber? // 0) - (.old_value | tonumber? // 0)) ] | add // 0),
-      done:  (([ .content.changes[]? | select(.field == "status")
-                 | (.new_value | tonumber? // 0) ] | max // 0) >= 3)
+                | ((.new_value | tonumber? // 0) - (.old_value | tonumber? // 0)) ] | add // 0)
     })
   | group_by(.key)
-  | map({ key: .[0].key,
-          summary: (map(.summary) | map(select(. != "")) | first // ""),
-          hours: (map(.hours) | add),
-          done:  (map(.done) | any) })
+  | map({ key: .[0].key, hours: (map(.hours) | add) })
+  | INDEX(.key) | map_values(.hours)')
+
+# Ticket thuộc về ngày này: khoảng startDate–dueDate có chứa nó. Lấy cả
+# ticket đã đóng, vì phần lớn ticket trong ngày là đóng luôn cuối ngày.
+ST_ALL="statusId[]=1&statusId[]=2&statusId[]=3&statusId[]=4"
+QA="assigneeId[]=$UID_&$ST_ALL&count=100"
+SCOPE=$(jq -sc 'add // []' \
+  <(bl_get "issues?$QA&startDateUntil=$DAY&dueDateSince=$DAY") \
+  <(bl_get "issues?$QA&startDateSince=$DAY&startDateUntil=$DAY") \
+  | jq -c 'unique_by(.issueKey)')
+
+# Giờ hiển thị: phần log trong ngày nếu có. Không có mà ticket gói gọn
+# trong đúng ngày này thì lấy tổng — trường hợp log muộn sang hôm sau,
+# toàn bộ số giờ vẫn thuộc về ngày đã lên lịch.
+TODAY=$(echo "$SCOPE" | jq -c --argjson d "$DELTA" --arg day "$DAY" '
+  map({
+    key: .issueKey,
+    summary: .summary,
+    done: ((.status.id // 0) >= 3),
+    hours: (($d[.issueKey] // 0) as $delta
+            | if $delta > 0 then $delta
+              elif (.startDate // "")[0:10] == $day and (.dueDate // "")[0:10] == $day
+              then (.actualHours // 0)
+              else 0 end)
+  })
   | map(select(.hours > 0))
-  | sort_by(.key)
-')
+  | sort_by(.key)')
 
 # ── Tomorrow: ticket chưa đóng có lịch vào ngày làm việc kế tiếp ──────────
 ST="statusId[]=1&statusId[]=2&statusId[]=3"
