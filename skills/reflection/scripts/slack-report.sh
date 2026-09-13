@@ -72,7 +72,9 @@ while [[ $PAGE -lt 10 ]]; do
   [[ -z "$n" || "$n" -eq 0 ]] && break
   ALL=$(jq -sc 'add' <(echo "$ALL") <(echo "$batch"))
   oldest=$(echo "$batch" | jq -r '.[-1].created')
-  [[ "${oldest:0:10}" < "$DAY" ]] && break
+  # Lùi thêm một tháng: cần cả lịch sử log của những ngày trước để biết
+  # phần nào của ticket đã tính rồi.
+  [[ "${oldest:0:10}" < "$(fmt_epoch $(( S - 30 * 86400 )) "+%Y-%m-%d")" ]] && break
   MAXID=$(echo "$batch" | jq -r '.[-1].id')
 done
 
@@ -98,6 +100,20 @@ DELTA=$(echo "$ALL" | jq -c --arg s "$S_ISO" --arg e "$E_ISO" '
   | map({ key: .[0].key, hours: (map(.hours) | add) })
   | INDEX(.key) | map_values(.hours)')
 
+# Giờ đã log TRƯỚC ngày này, gom theo ticket. Dùng để biết phần nào của
+# một ticket dài ngày đã được tính cho những ngày trước rồi.
+PRIOR=$(echo "$ALL" | jq -c --arg s "$S_ISO" '
+  map(select((.created | strptime("%Y-%m-%dT%H:%M:%SZ") | mktime
+              | strflocaltime("%Y-%m-%dT%H:%M:%S")) < $s))
+  | map({
+      key: ((.project.projectKey // "?") + "-" + ((.content.key_id // 0) | tostring)),
+      hours: ([ .content.changes[]? | select(.field == "actualHours")
+                | ((.new_value | tonumber? // 0) - (.old_value | tonumber? // 0)) ] | add // 0)
+    })
+  | group_by(.key)
+  | map({ key: .[0].key, hours: (map(.hours) | add) })
+  | INDEX(.key) | map_values(.hours)')
+
 # Ticket thuộc về ngày này: khoảng startDate–dueDate có chứa nó. Lấy cả
 # ticket đã đóng, vì phần lớn ticket trong ngày là đóng luôn cuối ngày.
 ST_ALL="statusId[]=1&statusId[]=2&statusId[]=3&statusId[]=4"
@@ -107,18 +123,22 @@ SCOPE=$(jq -sc 'add // []' \
   <(bl_get "issues?$QA&startDateSince=$DAY&startDateUntil=$DAY") \
   | jq -c 'unique_by(.issueKey)')
 
-# Giờ hiển thị: phần log trong ngày nếu có. Không có mà ticket gói gọn
-# trong đúng ngày này thì lấy tổng — trường hợp log muộn sang hôm sau,
-# toàn bộ số giờ vẫn thuộc về ngày đã lên lịch.
-TODAY=$(echo "$SCOPE" | jq -c --argjson d "$DELTA" --arg day "$DAY" '
+# Giờ hiển thị cho mỗi ticket:
+#   - Có log trong chính ngày này thì lấy đúng phần đó.
+#   - Không có, mà đây là ngày hết hạn của ticket: lấy phần còn lại chưa
+#     tính cho ngày nào (tổng trừ đi những gì đã log trước đó). Đây là
+#     trường hợp log muộn — làm ngày 11 nhưng tới ngày 13 mới ghi giờ.
+#   - Còn lại thì không tính, vì chưa có gì chứng minh ngày đó có làm.
+TODAY=$(echo "$SCOPE" | jq -c --argjson d "$DELTA" --argjson p "$PRIOR" --arg day "$DAY" '
   map({
     key: .issueKey,
     summary: .summary,
     done: ((.status.id // 0) >= 3),
     hours: (($d[.issueKey] // 0) as $delta
+            | ($p[.issueKey] // 0) as $before
             | if $delta > 0 then $delta
-              elif (.startDate // "")[0:10] == $day and (.dueDate // "")[0:10] == $day
-              then (.actualHours // 0)
+              elif (.dueDate // "")[0:10] == $day
+              then (((.actualHours // 0) - $before) | if . > 0 then . else 0 end)
               else 0 end)
   })
   | map(select(.hours > 0))
